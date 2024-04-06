@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, Response
 from src.config.service_provider import openai_client
 from src.prompts.system import system_prompt1
-from src.functions.retrieval import retrieve_filtered_data, retrieve_data_in_date_range
+from src.functions.retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
 import json
 import pandas as pd
 
@@ -22,8 +22,9 @@ def query_handler():
             "function": {
                 "name": "retrieve_filtered_data",
                 "description": (
-                    "Retrieves data from specified financial collections with optional filters. "
+                    "Retrieves financial data from specified financial collections with optional filters."
                     "Primarily call this function when the user query contains one or more financial collections with or without potential filtering based on year and month."
+                    "this function should always be first considered when the user query contains financial collections."
                     "Example calls: retrieve_filtered_data(['revenue'], {'year': 2024}) or retrieve_filtered_data(['revenue', 'expense'], {})."
                 ),
                 "parameters": {
@@ -48,8 +49,8 @@ def query_handler():
             "function": {
                 "name": "retrieve_data_in_date_range",
                 "description": (
-                    "Retrieves data from a single financial collection within a specified date range. "
-                    "Primarily call this function when the user query clearly indicate a date range contains both start and end for a single target financial collection."
+                    "Retrieves financial data from a single financial collection within a specified date range. "
+                    "Only to call this function when the user query clearly indicate a date range contains both start and end for a single target financial collection."
                     "Example call: retrieve_data_in_date_range('revenue', 2023, 5, 2024, 2)."
                 ),
                 "parameters": {
@@ -80,6 +81,34 @@ def query_handler():
                 },
             },
         },
+        {
+            "type": "function",
+            "function": {
+                "name": "retrieve_by_category_value_threshold",
+                "description": (
+                    "Retrieve financial data based on value threshold conditions for a specified collection."
+                    "Only to call this function when the user query contains a collection name, a threshold condition, and one or two threshold values."
+                    "Example calls: retrieve_by_category_value_threshold('revenue', [10000], 'gt'), retrieve_by_category_value_threshold('expense', [1000, 30000], 'in-between')."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "collection_name": {"type": "string", "description": "The target financial data collection to query."},
+                        "threshold_value": {
+                            "type": "array",
+                            "items": {"type": "number"},
+                            "description": "A list containing the threshold value(s); single number for 'gt' or 'lt', two numbers for 'in-between' (the first position is always smaller value than the second position).",
+                        },
+                        "threshold_condition": {
+                            "type": "string",
+                            "enum": ["gt", "lt", "in-between"],
+                            "description": "The condition for filtering data: greater than ('gt'), less than ('lt'), or in-between.",
+                        },
+                    },
+                    "required": ["collection_name", "threshold_value", "threshold_condition"],
+                },
+            },
+        },
     ]
 
     # set up message for completion with system prompt and user query
@@ -105,6 +134,7 @@ def query_handler():
         available_functions = {
             "retrieve_filtered_data": retrieve_filtered_data,
             "retrieve_data_in_date_range": retrieve_data_in_date_range,
+            "retrieve_by_category_value_threshold": retrieve_by_category_value_threshold,
         }
 
         for tool_call in completion_response_message.tool_calls:

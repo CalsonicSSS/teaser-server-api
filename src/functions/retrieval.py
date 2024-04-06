@@ -45,14 +45,13 @@ def retrieve_data_in_date_range(collection_name: str, start_year: int, start_mon
 
 
 # retrieval by a target collection with value threshold conditions
-def retrieve_by_category_value_threshold(collection_name: str, threshold: float):
+def retrieve_by_category_value_threshold(collection_name: str, threshold_value: list, threshold_condition: str):
     financial_main_db = mongodb_atlas_client.financial_main
     collection = financial_main_db[collection_name]
 
-    lte_query = {"value": {"$lte": threshold}}
-
-    gte_query = {"value": {"$gte": threshold}}
-
-    ranged_query = {"value": {"$gt": 11000, "$lt": 12000}}
-
-    return list(collection.find(ranged_query, {"_id": 0}))
+    if threshold_condition == "gt":
+        return list(collection.find({"value": {"$gt": threshold_value[0]}}, {"_id": 0}))
+    elif threshold_condition == "lt":
+        return list(collection.find({"value": {"$lt": threshold_value[0]}}, {"_id": 0}))
+    elif threshold_condition == "in-between":
+        return list(collection.find({"value": {"$gt": threshold_value[0], "$lt": threshold_value[1]}}, {"_id": 0}))

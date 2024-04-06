@@ -18,6 +18,14 @@ Below are detailed description of pre-defined functions' usage, argument, and wh
         - start_year, start_month, end_year, end_month: Define the date range (e.g., 2023, 5, 2024, 2).
     - When-to-call: Only to call this function when the user query clearly indicate a date range contains both start and end (year and month) for a single target financial collection.
 
+3. retrieve_by_category_value_threshold(collection_name, threshold_value, threshold_condition):
+    - Retrieves financial data based on a value threshold value and querying condition.
+    - Arguments:
+        - collection_name: the single specified name of the financial collection (e.g., "revenue", "expense", "working_hours").
+        - threshold_value: List containing the threshold value(s) for filtering data (e.g., [1000], [500, 1000]).
+        - threshold_condition: Condition for filtering data ('gt', 'lt', or 'in-between').
+    - When-to-call: Only to call this function when the user query contains a collection name, a threshold condition, and one or two threshold values based on some condition.
+
 Below are the detail description of current document schema and financial collections setup for storing & managing financial data in MongoDB Atlas:
     - All currrent financial collection names ARE: "revenue", "expense", "working_hours" (this means so far there are 3 different financial collections store 3 different financial metrics)
     - Document schema structure (fields) are the same cross all financial collections, contains fields of "category", "value", "year", "month", and "month_n".:
