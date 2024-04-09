@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, Response
 from src.config.service_provider import openai_client
-from src.prompts.system import system_prompt1
+from src.prompts.system import function_call_prompt, user_query_interpret_prompt, calculate_prompt
 from src.functions.retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
 import json
 import pandas as pd
@@ -112,41 +112,61 @@ def query_handler():
     ]
 
     # set up message for completion with system prompt and user query
-    messages = [{"role": "system", "content": system_prompt1()}, {"role": "user", "content": user_query}]
+    user_query_interpretation_messages = [{"role": "system", "content": user_query_interpret_prompt}, {"role": "user", "content": user_query}]
+    function_call_messages = [{"role": "system", "content": function_call_prompt}, {"role": "user", "content": user_query}]
+    calculate_messages = [{"role": "system", "content": calculate_prompt}, {"role": "user", "content": user_query}]
 
-    # setup the prompt for the API model
-
-    completion_response = openai_client.chat.completions.create(
+    # setup LLM completion workflow with OpenAI API
+    # 1. to interpret user query and determine the intent
+    user_query_interpretation_response = openai_client.chat.completions.create(
         model="gpt-4-turbo-preview",
-        messages=messages,
+        messages=user_query_interpretation_messages,
         temperature=0.2,
         top_p=0.1,
-        tools=tools,
-        tool_choice="auto",
+        response_format={"type": "json_object"},
     )
 
-    # this message will contain either text-based response or tool-based response for function arguments
-    completion_response_message = completion_response.choices[0].message
+    user_query_interpretation_response_json = user_query_interpretation_response.choices[0].message.content
+    print("user_query_interpretation_response_json:", user_query_interpretation_response_json)
 
-    # this is the condition where a tool call is made by the AI model
-    if completion_response_message.tool_calls:
-        print("function called")
-        available_functions = {
-            "retrieve_filtered_data": retrieve_filtered_data,
-            "retrieve_data_in_date_range": retrieve_data_in_date_range,
-            "retrieve_by_category_value_threshold": retrieve_by_category_value_threshold,
-        }
+    # 2. convert json string to python dictionary
+    user_query_interpretation_response_dict = json.loads(user_query_interpretation_response_json)
+    print("user_query_interpretation_response_dict:", user_query_interpretation_response_dict)
 
-        for tool_call in completion_response_message.tool_calls:
-            function_name = tool_call.function.name
-            print("function_name:", function_name)
+    # 3. conditions
+    # --------------------------------------------------- RETRIEVAL INTENT ---------------------------------------------------
+    if user_query_interpretation_response_dict["intent"] == "retrieval":
+        function_call_response = openai_client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=function_call_messages,
+            temperature=0.2,
+            top_p=0.1,
+            tools=tools,
+            tool_choice="auto",
+        )
+
+        # this message will contain either text-based response or tool-based response for function arguments
+        function_call_response_message = function_call_response.choices[0].message
+
+        # this is the condition where a tool call is made by the AI model
+        if function_call_response_message.tool_calls:
+            print("function called")
+            available_functions = {
+                "retrieve_filtered_data": retrieve_filtered_data,
+                "retrieve_data_in_date_range": retrieve_data_in_date_range,
+                "retrieve_by_category_value_threshold": retrieve_by_category_value_threshold,
+            }
+
+            tool_call = function_call_response_message.tool_calls[0]
+            target_function_name = tool_call.function.name
+            print("target_function_name:", target_function_name)
             print("function_arguments (lowered):", tool_call.function.arguments.lower())
 
-            function_to_call = available_functions[function_name]
+            target_function_to_call = available_functions[target_function_name]
             # convert the JSON string (all letter lower cased) to a Python dictionary for function arguments
-            function_args = json.loads(tool_call.function.arguments.lower())
+            target_function_args = json.loads(tool_call.function.arguments.lower())
             # call and execute the function on server side and return the result
-            retrieved_result = function_to_call(**function_args)
+            retrieved_result = target_function_to_call(**target_function_args)
             print("retrieved_result:", retrieved_result)
 
             # convert retrieved_result to pandas dataframe
@@ -165,11 +185,26 @@ def query_handler():
             print("json.loads(df_data):", json.loads(df_data))
             return jsonify({"botResponse": json.loads(df_data)})
 
-    # this is the condition where the AI model directly provides a text-based response
-    else:
-        print("no function called")
-        response = completion_response_message.content
-        print("response:", response)
+        # this is the condition where the AI model directly provides a text-based response
+        else:
+            print("no function called")
+            response = function_call_response_message.content
+            print("response:", response)
 
-        # using jsonify to convert the Python dictionary to a JSON object and return it as a response payload to the client
-        return jsonify({"botResponse": response})
+            # using jsonify to convert the Python dictionary to a JSON object and return it as a response payload to the client
+            return jsonify({"botResponse": response})
+
+    # --------------------------------------------------- CALCULATE INTENT ---------------------------------------------------
+
+    if user_query_interpretation_response_dict["intent"] == "calculate":
+        calculate_response = openai_client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=calculate_messages,
+            temperature=0.2,
+            top_p=0.1,
+        )
+
+        calculate_response_message = calculate_response.choices[0].message.content
+        print("calculate response:", calculate_response_message)
+
+        return jsonify({"botResponse": calculate_response_message})
