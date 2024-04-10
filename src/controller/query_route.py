@@ -197,14 +197,46 @@ def query_handler():
     # --------------------------------------------------- CALCULATE INTENT ---------------------------------------------------
 
     if user_query_interpretation_response_dict["intent"] == "calculate":
-        calculate_response = openai_client.chat.completions.create(
+        print("create financial analyzer assistant")
+        financial_analyzer_assistant = openai_client.beta.assistants.create(
+            name="financial_analyzer",
+            instructions=calculate_prompt,
+            tools=[{"type": "code_interpreter"}],
             model="gpt-4-turbo-preview",
-            messages=calculate_messages,
-            temperature=0.2,
-            top_p=0.1,
         )
 
-        calculate_response_message = calculate_response.choices[0].message.content
-        print("calculate response:", calculate_response_message)
+        print("create thread")
+        print("user_query:", user_query)
+        thread = openai_client.beta.threads.create(messages=[{"role": "user", "content": user_query}])
 
-        return jsonify({"botResponse": calculate_response_message})
+        print("now create and poll run")
+        # the particular assistant is attached to a particular thread with id and then run them together
+        run = openai_client.beta.threads.runs.create_and_poll(
+            thread_id=thread.id,
+            assistant_id=financial_analyzer_assistant.id,
+        )
+
+        print("completion hits!")
+        # the run result is the message that can be attach to a particular thread
+        if run.status == "completed":
+            print("run status complete")
+            messages = openai_client.beta.threads.messages.list(thread_id=thread.id)
+            print("run result", messages.data[0].content[0].text.value)
+            return jsonify({"botResponse": messages.data[0].content[0].text.value})
+        else:
+            print("run status else")
+            print(run.status)
+            return jsonify({"botResponse": "Sorry, I could not complete the task."})
+
+    # if user_query_interpretation_response_dict["intent"] == "calculate":
+    #     calculate_response = openai_client.chat.completions.create(
+    #         model="gpt-4-turbo-preview",
+    #         messages=calculate_messages,
+    #         temperature=0.2,
+    #         top_p=0.1,
+    #     )
+
+    #     calculate_response_message = calculate_response.choices[0].message.content
+    #     print("calculate response:", calculate_response_message)
+
+    #     return jsonify({"botResponse": calculate_response_message})
