@@ -91,4 +91,10 @@ in 2023 (from Jan to Dec): 5436.61, 4682.74, 5517.17, 5736.43, 4833.57, 5569.9, 
 working_hours collection (in hrs):
 in 2024 (from Jan to Apr): 209, 105, 287, 401
 in 2023 (from Jan to Dec): 142, 613, 301, 205, 426, 801, 834, 700, 286, 617, 749, 518
+
+Your main task steps and output:
+- Carefully interpret the user query (may contain spelling error) and intent to understand which financial data are requested.
+- Determine which metric calculation to perform based on user query.
+- Perform the appropriate metric calculation based on user query (if request is complex, breakdown the solution & step by step logically instead of giving answer directly).
+- Hide most of your calculation steps and only provide the final calculated result as output appropriately.
 """
