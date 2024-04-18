@@ -1,14 +1,14 @@
 from flask import Flask, request, jsonify, Response
-from src.config.service_provider import openai_client
+from src.config.service_provider_init import openai_client
 from src.prompts.system import function_call_prompt, user_query_interpret_prompt, calculate_prompt
-from src.functions.retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
+from src.functions.db_retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
 import json
 import pandas as pd
 
 
-def query_handler():
-    print("query_handler controller runs")
-    # access JSON in request body and directly convert / parse it to a Python dictionary
+def teaser_query_route_controller():
+    print("teaser_query_route_controller runs")
+    # access JSON payload in request body and directly convert / parse it to a Python dictionary
     data = request.json
 
     # The .get() method is used instead of direct key access as it returns None if the key is not found, instead of throwing an error
@@ -111,10 +111,9 @@ def query_handler():
         },
     ]
 
-    # set up message for completion with system prompt and user query
+    # set up message for chat completion api with system prompt and user query
     user_query_interpretation_messages = [{"role": "system", "content": user_query_interpret_prompt}, {"role": "user", "content": user_query}]
     function_call_messages = [{"role": "system", "content": function_call_prompt}, {"role": "user", "content": user_query}]
-    calculate_messages = [{"role": "system", "content": calculate_prompt}, {"role": "user", "content": user_query}]
 
     # setup LLM completion workflow with OpenAI API
     # 1. to interpret user query and determine the intent
@@ -145,7 +144,7 @@ def query_handler():
             tool_choice="auto",
         )
 
-        # this message will contain either text-based response or tool-based response for function arguments
+        # the response message here will contain either text-based response or tool-based response json for function call
         function_call_response_message = function_call_response.choices[0].message
 
         # this is the condition where a tool call is made by the AI model
@@ -191,7 +190,7 @@ def query_handler():
             response = function_call_response_message.content
             print("response:", response)
 
-            # using jsonify to convert the Python dictionary to a JSON object and return it as a response payload to the client
+            # using jsonify to convert the Python dictionary to a JSON string as a response payload and send directly to the client side after return statement
             return jsonify({"botResponse": response})
 
     # --------------------------------------------------- CALCULATE INTENT ---------------------------------------------------
@@ -227,16 +226,3 @@ def query_handler():
             print("run status else")
             print(run.status)
             return jsonify({"botResponse": "Sorry, I could not complete the task."})
-
-    # if user_query_interpretation_response_dict["intent"] == "calculate":
-    #     calculate_response = openai_client.chat.completions.create(
-    #         model="gpt-4-turbo-preview",
-    #         messages=calculate_messages,
-    #         temperature=0.2,
-    #         top_p=0.1,
-    #     )
-
-    #     calculate_response_message = calculate_response.choices[0].message.content
-    #     print("calculate response:", calculate_response_message)
-
-    #     return jsonify({"botResponse": calculate_response_message})

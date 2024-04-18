@@ -1,4 +1,4 @@
-from src.config.service_provider import mongodb_atlas_client
+from src.config.service_provider_init import mongodb_atlas_client
 
 
 # Retrieve target financial data with filters from specified collection(s).

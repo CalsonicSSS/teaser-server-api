@@ -22,3 +22,6 @@ venv/
 
 # others
 test.ipynb
+test.py
+Dockerfile
+copilot

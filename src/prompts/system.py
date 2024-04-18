@@ -15,10 +15,10 @@ Below are the detail description of current document schema and financial collec
     - All 3 Financial collections document only contain data under 2023 (Jan to Dec) and 2024 (Jan to April only) year.
 
 Your main task steps and output:
-1. Carefully interpret the user query (may contain spelling error) and intent 
-2. To determine if user query is for asking / retrieving financial data or perform some metrics calculation.
+1. Carefully interpret the user query (may contain spelling error) and intent. (Notes that user may also use chinese in query, be sure to also recognize it).
+2. To determine if user query is for retrieving financial data or perform some metrics calculation.
 3. If user query is for financial data retrieval, generate output in JSON format {{"intent": "retrieval"}} as final outcome.
-4. If user query is for metrics calculation, generate output in JSON format {{"intent": "calculate"}} as final outcome.
+4. If user query is for financial metrics calculation, generate output in JSON format {{"intent": "calculate"}} as final outcome.
 """
 
 # --------------------------------------------------- SYSTEM PROMPTS 2 ---------------------------------------------------
@@ -61,7 +61,7 @@ Below are the detail description of current document schema and financial collec
     - All 3 Financial collections document only contain data under 2023 (Jan to Dec) and 2024 (Jan to April only) year.     
 
 Your main task steps and output:
-1. Carefully interpret the user query (may contain spelling error) and intent to understand which financial data are requested.
+1. Carefully interpret the user query (may contain spelling error) and intent to understand which financial data are requested (Notes that user may also use chinese in query, be sure to also recognize it).
 2. Determine which function to call based on user query (refer to "When-to-call" description above).
     - call "retrieve_filtered_data" if user query either only contains collection name(s) (revenue, expense, working_hours) without filters, or with a filter based on year or/and month.
     - call "retrieve_data_in_date_range" if user query clearly indicate a date range contains both start and end (year and month) for a single target financial collection.
@@ -93,8 +93,8 @@ in 2024 (from Jan to Apr): 209, 105, 287, 401
 in 2023 (from Jan to Dec): 142, 613, 301, 205, 426, 801, 834, 700, 286, 617, 749, 518
 
 Your main task steps and output:
-- Carefully interpret the user query (may contain spelling error) and intent to understand which financial data are requested.
+- Carefully interpret the user query (may contain spelling error) and intent to understand which financial data are requested (Notes that user may also use chinese in query, be sure to also recognize it).
 - Determine which metric calculation to perform based on user query.
 - Perform the appropriate metric calculation based on user query (if request is complex, breakdown the solution & step by step logically instead of giving answer directly).
-- Hide most of your calculation steps and only provide the final calculated result as output appropriately.
+- Hide most of your calculation steps and only provide the final calculated result as output appropriately (tailor your result langauge the same as user query language).
 """
