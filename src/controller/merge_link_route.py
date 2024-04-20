@@ -23,12 +23,8 @@ def create_link_token_route_controller():
 
     print("body: ", body)
 
-    # user_db = mongodb_atlas_client.user
-    # target_collection = user_db["user_info"]
-    # target_collection.insert_one(user_data)
-
-    link_token_result = requests.post(link_token_url, data=body, headers=headers)
-    link_token = link_token_result.json().get("link_token")
+    link_token_response_result = requests.post(link_token_url, data=body, headers=headers)
+    link_token = link_token_response_result.json().get("link_token")
 
     print("link_token: ", link_token)
 
@@ -47,11 +43,10 @@ def swap_account_token_route_controller():
     public_token = swap_data.get("public_token")
 
     headers = {"Authorization": f"Bearer {merge_api_key}"}
-
     account_token_url = "https://api.merge.dev/api/integrations/account-token/{}".format(public_token)
     account_token_result = requests.get(account_token_url, headers=headers)
-
     account_token = account_token_result.json().get("account_token")
+
     # make comprehensive user data object
     user_data = {
         "end_user_organization_name": swap_data.get("end_user_organization_name"),

@@ -12,6 +12,7 @@ pandas = "*"
 pymongo = {extras = ["srv"], version = "*"}
 mergepythonclient = "*"
 requests = "*"
+numpy = "*"
 
 [dev-packages]
 ipykernel = "*"

@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from src.controller.teaser_query_route import teaser_query_route_controller
 from src.controller.visor_guys_query_route import visor_guys_query_route_controller
-from src.controller.merge_link_route import create_link_token_route_controller
+from src.controller.merge_link_route import create_link_token_route_controller, swap_account_token_route_controller
 
 # Flask is the class declaration for a Flask web application, the "app" is just the object instance
 # The "__name__" variable is a special built-in variable with pre-assigned value in Python.
@@ -28,6 +28,12 @@ def home():
 def create_link_token_route_handler():
     print("create_link_token_route reached")
     return create_link_token_route_controller()
+
+
+@app.route("/swap-account-token", methods=["POST"])
+def swap_account_token_route_handler():
+    print("swap_account_token_route reached")
+    return swap_account_token_route_controller()
 
 
 @app.route("/query/visor-guys", methods=["POST"])
