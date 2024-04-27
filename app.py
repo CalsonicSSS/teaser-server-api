@@ -24,6 +24,9 @@ def home():
     return jsonify({"message": "Welcome to automatic"}), 200, {"Custom-Header1": "custom value 1"}
 
 
+# --------------------------------------------------- MERGE LINK ROUTES ---------------------------------------------------
+
+
 @app.route("/create-link-token", methods=["POST"])
 def create_link_token_route_handler():
     print("create_link_token_route reached")
@@ -36,10 +39,16 @@ def swap_account_token_route_handler():
     return swap_account_token_route_controller()
 
 
+# --------------------------------------------------- VISOR_GUYS QUERY ROUTES ---------------------------------------------------
+
+
 @app.route("/query/visor-guys", methods=["POST"])
 def visor_guys_query_route_handler():
     print("visor_guys_query_route reached")
     return visor_guys_query_route_controller()
+
+
+# --------------------------------------------------- Teaser QUERY ROUTES ---------------------------------------------------
 
 
 @app.route("/query/teaser", methods=["POST"])

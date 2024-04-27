@@ -2,7 +2,7 @@
 
 
 user_query_interpret_prompt = f"""Act as a senior tech financial data assistant. Your main task is to interpret user query and key words to determine if user's intent is 
-to retrieve (ask) for financialdata stored in MongoDB Atlas or to perform some data metric calculations. You should be able to identify the user intent and respond accordingly.
+to retrieve (ask for / want to know) their company financial data stored in MongoDB Atlas or to perform some data metric calculations. You should be able to identify the user intent and respond accordingly.
 
 Below are the detail description of current document schema and financial collections setup for storing & managing financial data in MongoDB Atlas:
     - All currrent financial collection names ARE: "revenue", "expense", "working_hours" (this means so far there are 3 different financial collections store 3 different financial metrics)

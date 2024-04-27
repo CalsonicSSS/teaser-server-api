@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify, Response
 from src.config.service_provider_init import openai_client
-from src.prompts.system import function_call_prompt, user_query_interpret_prompt, calculate_prompt
-from src.functions.db_retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
+from src.open_ai.teaser_prompts import function_call_prompt, user_query_interpret_prompt, calculate_prompt
+from src.functions.teaser_retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
 import json
 import pandas as pd
 
 
 def teaser_query_route_controller():
     print("teaser_query_route_controller runs")
-    # access JSON payload in request body and directly convert / parse it to a Python dictionary
+
+    # access JSON payload in http request body and then parse it to a Python dictionary
     data = request.json
 
     # The .get() method is used instead of direct key access as it returns None if the key is not found, instead of throwing an error
@@ -115,8 +116,7 @@ def teaser_query_route_controller():
     user_query_interpretation_messages = [{"role": "system", "content": user_query_interpret_prompt}, {"role": "user", "content": user_query}]
     function_call_messages = [{"role": "system", "content": function_call_prompt}, {"role": "user", "content": user_query}]
 
-    # setup LLM completion workflow with OpenAI API
-    # 1. to interpret user query and determine the intent
+    # to interpret user query and determine the intent
     user_query_interpretation_response = openai_client.chat.completions.create(
         model="gpt-4-turbo-preview",
         messages=user_query_interpretation_messages,
@@ -128,12 +128,12 @@ def teaser_query_route_controller():
     user_query_interpretation_response_json = user_query_interpretation_response.choices[0].message.content
     print("user_query_interpretation_response_json:", user_query_interpretation_response_json)
 
-    # 2. convert json string to python dictionary
+    # convert json string to python dictionary
     user_query_interpretation_response_dict = json.loads(user_query_interpretation_response_json)
     print("user_query_interpretation_response_dict:", user_query_interpretation_response_dict)
 
-    # 3. conditions
-    # --------------------------------------------------- RETRIEVAL INTENT ---------------------------------------------------
+    # --------------------------------------------------- RETRIEVAL INTENT CONDITION ---------------------------------------------------
+
     if user_query_interpretation_response_dict["intent"] == "retrieval":
         function_call_response = openai_client.chat.completions.create(
             model="gpt-4-turbo-preview",
@@ -206,12 +206,12 @@ def teaser_query_route_controller():
 
         print("create thread")
         print("user_query:", user_query)
-        thread = openai_client.beta.threads.create(messages=[{"role": "user", "content": user_query}])
+        thread_1 = openai_client.beta.threads.create(messages=[{"role": "user", "content": user_query}])
 
         print("now create and poll run")
         # the particular assistant is attached to a particular thread with id and then run them together
         run = openai_client.beta.threads.runs.create_and_poll(
-            thread_id=thread.id,
+            thread_id=thread_1.id,
             assistant_id=financial_analyzer_assistant.id,
         )
 
@@ -219,7 +219,7 @@ def teaser_query_route_controller():
         # the run result is the message that can be attach to a particular thread
         if run.status == "completed":
             print("run status complete")
-            messages = openai_client.beta.threads.messages.list(thread_id=thread.id)
+            messages = openai_client.beta.threads.messages.list(thread_id=thread_1.id)
             print("run result", messages.data[0].content[0].text.value)
             return jsonify({"botResponse": messages.data[0].content[0].text.value})
         else:
