@@ -1,18 +1,20 @@
 from flask import Flask, request, jsonify, Response
 from src.config.service_provider_init import openai_client
 from src.open_ai.function_tools import (
-    retrieve_client_invoice_data_tool,
-    retrieve_client_balance_sheet_data_tool,
-    retrieve_client_cash_flow_data_tool,
+    retrieve_client_invoices_data_tool,
+    retrieve_client_balance_sheets_data_tool,
+    retrieve_client_cash_flows_data_tool,
     retrieve_client_expenses_data_tool,
+    retrieve_client_income_statements_data_tool,
 )
 from src.open_ai.production_prompts import user_query_interpretation_prompt, user_retrieval_function_call_prompt, user_calculate_prompt
 import json
 from src.functions.merge_retrieval import (
-    retrieve_client_invoice_data,
-    retrieve_client_balance_sheet_data,
-    retrieve_client_cash_flow_data,
+    retrieve_client_invoices_data,
+    retrieve_client_balance_sheets_data,
+    retrieve_client_cash_flows_data,
     retrieve_client_expenses_data,
+    retrieve_client_income_statements_data,
 )
 import pandas as pd
 from src.config.service_provider_init import mongodb_atlas_client
@@ -61,10 +63,11 @@ def visor_guys_query_route_controller():
         ]
         # define tools for the chat completion AI model to intelligently choose a target function to execute based on user query
         tools = [
-            retrieve_client_invoice_data_tool,
-            retrieve_client_balance_sheet_data_tool,
-            retrieve_client_cash_flow_data_tool,
+            retrieve_client_invoices_data_tool,
+            retrieve_client_balance_sheets_data_tool,
+            retrieve_client_cash_flows_data_tool,
             retrieve_client_expenses_data_tool,
+            retrieve_client_income_statements_data_tool,
         ]
 
         function_call_response = openai_client.chat.completions.create(
@@ -82,10 +85,11 @@ def visor_guys_query_route_controller():
         # If responds with tool-based function call in json format:
         if function_call_response_message.tool_calls:
             available_functions = {
-                "retrieve_client_invoice_data": retrieve_client_invoice_data,
-                "retrieve_client_balance_sheet_data": retrieve_client_balance_sheet_data,
-                "retrieve_client_cash_flow_data": retrieve_client_cash_flow_data,
+                "retrieve_client_invoices_data": retrieve_client_invoices_data,
+                "retrieve_client_balance_sheets_data": retrieve_client_balance_sheets_data,
+                "retrieve_client_cash_flows_data": retrieve_client_cash_flows_data,
                 "retrieve_client_expenses_data": retrieve_client_expenses_data,
+                "retrieve_client_income_statements_data": retrieve_client_income_statements_data,
             }
 
             tool_call = function_call_response_message.tool_calls[0]

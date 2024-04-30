@@ -20,10 +20,11 @@ user_retrieval_function_call_prompt = f"""Act as an experienced senior corporate
 determine which company data (category) user is asking for retrieval, and to select a correct pre-defined retrieval function to call for retrieving the right data at the end.
 
 Below are the all pre-defined retrieval function names to retrieve different company data categories:
-1. retrieve_client_invoice_data(start_date, end_date):
-2. retrieve_client_balance_sheet_data(start_date, end_date):
-3. retrieve_client_cash_flow_data(start_date, end_date):
+1. retrieve_client_invoices_data(start_date, end_date):
+2. retrieve_client_balance_sheets_data(start_date, end_date):
+3. retrieve_client_cash_flows_data(start_date, end_date):
 4. retrieve_client_expenses_data(start_date, end_date):
+5. retrieve_client_income_statements_data(start_date, end_date):
 
 Below are the "start_date" and "end_date" argument notes context for your reference:
 - "start_date" and "end_date" are in the string format of "YYYY-MM-DD".
