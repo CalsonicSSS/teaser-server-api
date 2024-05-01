@@ -31,13 +31,12 @@ def visor_guys_query_route_controller():
     user_query = request_payload.get("user_query")
     print("user_query:", user_query)
 
-    # define messages for the chat completion AI model to interpret the user query intention
+    # determine the user query intention for data retrieval or data metrics calculation
     user_query_interpretation_messages = [
         {"role": "system", "content": user_query_interpretation_prompt},
         {"role": "user", "content": user_query},
     ]
 
-    # determine the user query intention for data retrieval or data metrics calculation
     user_query_interpretation_response = openai_client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         messages=user_query_interpretation_messages,
@@ -95,9 +94,9 @@ def visor_guys_query_route_controller():
             tool_call = function_call_response_message.tool_calls[0]
             target_function_name = tool_call.function.name
             target_function_args_json = tool_call.function.arguments.lower()
+            target_function_args = json.loads(target_function_args_json)
 
             # convert the JSON string (all letter lower cased) to a Python dictionary for function arguments
-            target_function_args = json.loads(target_function_args_json)
             print("target_function_name:", target_function_name)
             print("target_function_arguments:", target_function_args)
 
