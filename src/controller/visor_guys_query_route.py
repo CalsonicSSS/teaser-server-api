@@ -83,6 +83,8 @@ def visor_guys_query_route_controller():
 
         # If responds with tool-based function call in json format:
         if function_call_response_message.tool_calls:
+            print("tool call condition reached")
+
             available_functions = {
                 "retrieve_client_invoices_data": retrieve_client_invoices_data,
                 "retrieve_client_balance_sheets_data": retrieve_client_balance_sheets_data,
@@ -136,6 +138,7 @@ def visor_guys_query_route_controller():
 
         # If responds with text-based response:
         if function_call_response_message.content:
+            print("text response condition reached")
             return jsonify({"queryResult": function_call_response_message.content, "category": "text"})
 
     # --------------------------------------------------- CALCULATE INTENT CONDITIONS ---------------------------------------------------
