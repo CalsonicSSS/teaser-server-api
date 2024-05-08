@@ -18,5 +18,5 @@ mongodb_atlas_client = MongoClient(host=mongodb_atlas_uri)
 
 # for merge api client
 merge_api_key = os.getenv("MERGE_API_KEY")
-visor_guys_merge_account_token = os.getenv("VISOR_GUYS_ACCOUNT_TOKEN")
+visor_guys_merge_account_token = os.getenv("VISOR_GUYS_MERGE_ACCOUNT_TOKEN")
 visor_guys_merge_client = Merge(api_key=merge_api_key, account_token=visor_guys_merge_account_token)
