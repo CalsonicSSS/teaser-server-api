@@ -9,10 +9,11 @@ flask-cors = "*"
 openai = "*"
 python-dotenv = "*"
 pandas = "*"
-pymongo = {extras = ["srv"], version = "*"}
+pymongo = "*"
 mergepythonclient = "*"
 requests = "*"
 numpy = "*"
+gunicorn = "*"
 
 [dev-packages]
 ipykernel = "*"

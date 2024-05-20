@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import request, jsonify
 from src.config.service_provider_init import openai_client
 from src.open_ai.teaser_prompts import function_call_prompt, user_query_interpret_prompt, calculate_prompt
 from src.functions.teaser_retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
