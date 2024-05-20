@@ -26,7 +26,7 @@ def teaser_query_route_controller():
 
     # to interpret user query and determine the intent
     user_query_interpretation_response = openai_client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
+        model="gpt-4-turbo",
         messages=user_query_interpretation_messages,
         temperature=0.2,
         top_p=0.1,
@@ -45,7 +45,7 @@ def teaser_query_route_controller():
     if user_query_interpretation_response_dict["intent"] == "retrieval":
         print("retrieval intent path")
         function_call_response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4-turbo",
             messages=function_call_messages,
             temperature=0.2,
             top_p=0.1,
