@@ -1,3 +1,103 @@
+# ---------------------------------------------------- For Teaser -------------------------------------------------------------
+
+retrieve_filtered_data_tool = {
+    "type": "function",
+    "function": {
+        "name": "retrieve_filtered_data",
+        "description": (
+            "Retrieves data from specified collections with optional filters."
+            "Primarily call this function when user query either only contains collection name(s) (revenue, expense, parts_orders, working_hours) without filters, or with a filter based on year or/and month."
+            "this function should always be first considered over others when the user query contains collections."
+            "Example calls: retrieve_filtered_data(['revenue'], {'year': 2024}) or retrieve_filtered_data(['revenue', 'expense'], {})."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "collections": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of collection names, can be single or multiple within array (e.g., ['revenue'] or ['revenue','expense'])",
+                },
+                "filter_option": {
+                    "type": "object",
+                    "description": "This is optional, depends on if user query contain any filtering based on specific year and/or month e.g., {'year': 2023, 'month': 'may'} or {'year': 2023}.",
+                },
+            },
+            "required": ["collections"],
+        },
+    },
+}
+
+retrieve_data_in_date_range_tool = {
+    "type": "function",
+    "function": {
+        "name": "retrieve_data_in_date_range",
+        "description": (
+            "Retrieves data from a single collection within a specified date range. "
+            "Only to call this function when the user query fully and clearly indicate a date range contains both start and end for a target collection."
+            "Example call: retrieve_data_in_date_range('revenue', 2023, 5, 2024, 2)."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "collection_name": {
+                    "type": "string",
+                    "description": "the single name of the collection (e.g., 'revenue', 'expense', 'parts_orders', or 'working_hours')",
+                },
+                "start_year": {
+                    "type": "number",
+                    "description": "Start year in number, (e.g., 2023)",
+                },
+                "start_month": {
+                    "type": "number",
+                    "description": "Start month in number, (e.g 5 for may)",
+                },
+                "end_year": {
+                    "type": "number",
+                    "description": "End year in number, (e.g., 2024)",
+                },
+                "end_month": {
+                    "type": "number",
+                    "description": "End month in number, (e.g 7 for july)",
+                },
+            },
+            "required": ["collection_name", "start_year", "start_month", "end_year", "end_month"],
+        },
+    },
+}
+retrieve_by_category_value_threshold_tool = {
+    "type": "function",
+    "function": {
+        "name": "retrieve_by_category_value_threshold",
+        "description": (
+            "Retrieve data based on value threshold conditions for a specified collection."
+            "Only to call this function when the user query contains a collection name, a threshold condition, and one or two threshold values."
+            "Example calls: retrieve_by_category_value_threshold('revenue', [10000], 'gt'), retrieve_by_category_value_threshold('expense', [1000, 30000], 'in-between')."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "collection_name": {
+                    "type": "string",
+                    "description": "the single name of the collection (e.g., 'revenue', 'expense', 'parts_orders', or 'working_hours')",
+                },
+                "threshold_value": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "A list containing the threshold value(s); single number for 'gt' or 'lt', two numbers for 'in-between' (the first position is always smaller value than the second position).",
+                },
+                "threshold_condition": {
+                    "type": "string",
+                    "enum": ["gt", "lt", "in-between"],
+                    "description": "The condition for filtering data: greater than ('gt'), less than ('lt'), or in-between.",
+                },
+            },
+            "required": ["collection_name", "threshold_value", "threshold_condition"],
+        },
+    },
+}
+
+
 # ---------------------------------------------------- For Visor_Guys ----------------------------------------------------------
 
 

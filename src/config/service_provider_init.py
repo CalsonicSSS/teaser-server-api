@@ -1,9 +1,7 @@
-import pymongo
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
 from pymongo.mongo_client import MongoClient
-import merge
 from merge.client import Merge
 
 load_dotenv()

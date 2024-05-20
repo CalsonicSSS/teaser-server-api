@@ -4,113 +4,21 @@ from src.open_ai.teaser_prompts import function_call_prompt, user_query_interpre
 from src.functions.teaser_retrieval import retrieve_filtered_data, retrieve_data_in_date_range, retrieve_by_category_value_threshold
 import json
 import pandas as pd
+from src.open_ai.function_tools import retrieve_filtered_data_tool, retrieve_data_in_date_range_tool, retrieve_by_category_value_threshold_tool
 
 
 def teaser_query_route_controller():
     print("teaser_query_route_controller runs")
 
     # access JSON payload in http request body and then parse it to a Python dictionary
-    data = request.json
+    request_payload_data = request.json
 
     # The .get() method is used instead of direct key access as it returns None if the key is not found, instead of throwing an error
-    user_query = data.get("userQuery")
+    user_query = request_payload_data.get("user_query")
     print("user_query:", user_query)
 
     # define tools for the chat completion AI model to intelligently choose a target function to execute based on user query
-    tools = [
-        {
-            "type": "function",
-            "function": {
-                "name": "retrieve_filtered_data",
-                "description": (
-                    "Retrieves financial data from specified financial collections with optional filters."
-                    "Primarily call this function when the user query contains one or more financial collections with or without potential filtering based on year and month."
-                    "this function should always be first considered when the user query contains financial collections."
-                    "Example calls: retrieve_filtered_data(['revenue'], {'year': 2024}) or retrieve_filtered_data(['revenue', 'expense'], {})."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "collections": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "Target collections, e.g., ['revenue', 'expense'] or ['working_hours'].",
-                        },
-                        "filter_option": {
-                            "type": "object",
-                            "description": "Optional filters, e.g., {'year': 2023, 'month': 'may'} or {'year': 2023}.",
-                        },
-                    },
-                    "required": ["collections"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "retrieve_data_in_date_range",
-                "description": (
-                    "Retrieves financial data from a single financial collection within a specified date range. "
-                    "Only to call this function when the user query clearly indicate a date range contains both start and end for a single target financial collection."
-                    "Example call: retrieve_data_in_date_range('revenue', 2023, 5, 2024, 2)."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "collection_name": {
-                            "type": "string",
-                            "description": "The target financial collection to query, e.g., 'revenue'.",
-                        },
-                        "start_year": {
-                            "type": "number",
-                            "description": "Start year, e.g., 2023.",
-                        },
-                        "start_month": {
-                            "type": "number",
-                            "description": "Start month, e.g., 1 for January.",
-                        },
-                        "end_year": {
-                            "type": "number",
-                            "description": "End year, e.g., 2024.",
-                        },
-                        "end_month": {
-                            "type": "number",
-                            "description": "End month, e.g., 2 for February.",
-                        },
-                    },
-                    "required": ["collection_name", "start_year", "start_month", "end_year", "end_month"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "retrieve_by_category_value_threshold",
-                "description": (
-                    "Retrieve financial data based on value threshold conditions for a specified collection."
-                    "Only to call this function when the user query contains a collection name, a threshold condition, and one or two threshold values."
-                    "Example calls: retrieve_by_category_value_threshold('revenue', [10000], 'gt'), retrieve_by_category_value_threshold('expense', [1000, 30000], 'in-between')."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "collection_name": {"type": "string", "description": "The target financial data collection to query."},
-                        "threshold_value": {
-                            "type": "array",
-                            "items": {"type": "number"},
-                            "description": "A list containing the threshold value(s); single number for 'gt' or 'lt', two numbers for 'in-between' (the first position is always smaller value than the second position).",
-                        },
-                        "threshold_condition": {
-                            "type": "string",
-                            "enum": ["gt", "lt", "in-between"],
-                            "description": "The condition for filtering data: greater than ('gt'), less than ('lt'), or in-between.",
-                        },
-                    },
-                    "required": ["collection_name", "threshold_value", "threshold_condition"],
-                },
-            },
-        },
-    ]
+    tools = [retrieve_filtered_data_tool, retrieve_data_in_date_range_tool, retrieve_by_category_value_threshold_tool]
 
     # set up message for chat completion api with system prompt and user query
     user_query_interpretation_messages = [{"role": "system", "content": user_query_interpret_prompt}, {"role": "user", "content": user_query}]
@@ -118,7 +26,7 @@ def teaser_query_route_controller():
 
     # to interpret user query and determine the intent
     user_query_interpretation_response = openai_client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model="gpt-3.5-turbo-0125",
         messages=user_query_interpretation_messages,
         temperature=0.2,
         top_p=0.1,
@@ -135,8 +43,9 @@ def teaser_query_route_controller():
     # --------------------------------------------------- RETRIEVAL INTENT CONDITION ---------------------------------------------------
 
     if user_query_interpretation_response_dict["intent"] == "retrieval":
+        print("retrieval intent path")
         function_call_response = openai_client.chat.completions.create(
-            model="gpt-4-turbo-preview",
+            model="gpt-3.5-turbo-0125",
             messages=function_call_messages,
             temperature=0.2,
             top_p=0.1,
@@ -170,11 +79,16 @@ def teaser_query_route_controller():
 
             # convert retrieved_result to pandas dataframe
             df = pd.DataFrame(retrieved_result)
+            print("df:", df)
             pivoted_df = df.pivot_table(index=["year", "month", "month_n"], columns="category", values="value").reset_index()
+            print(1)
             sorted_df = pivoted_df.sort_values(by=["year", "month_n"], ascending=[False, False])
+            print(2)
             category_columns = [col for col in sorted_df.columns if col not in ["year", "month", "month_n"]]
+            print(3)
             column_order = ["year", "month", "month_n"] + category_columns
             final_df = sorted_df[column_order]
+            print(4)
 
             print("final_df:", final_df)
 
