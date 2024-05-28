@@ -21,7 +21,7 @@ retrieve_filtered_data_tool = {
                 "filter": {
                     "type": "object",
                     "description": (
-                        "contains filter conditions based on year or/and month for the specified collection(s). e.g: if query contains 'in 2023 may', filter should gives: {'year': 2023, 'month': 'may'}; if query contains only year 'in 2024', filter should gives {'year': 2024}; if query contains multiple years 'in 2023 and 2024', it should gives {'year': {'$in': [2023, 2024]}}."
+                        "contains filter conditions based on year or/and month for the specified collection(s). e.g: if query contains 'in 2023 may', filter should gives: {'year': 2023, 'month': 'may'}; if query contains only year 'in 2024', filter should gives {'year': 2024}; if query contains multiple years 'in 2023 and 2024', it should gives {'year': {'$in': [2023, 2024]}}; If query contains both multiple years and month: 'in 2023 and 2024 may and june', it should gives {'year': {'$in': [2023, 2024]}, 'month':{'$in': ['may', 'jun']}}."
                     ),
                 },
             },
