@@ -2,14 +2,14 @@ from src.config.service_provider_init import mongodb_atlas_client
 
 
 # Retrieve target financial data with filters from specified collection(s).
-# collections: str[] (required), filter_option: dict (optional)
-def retrieve_filtered_data(collections, filter_option={}):
+# collections: str[] (required), filter: dict (required)
+def retrieve_filtered_data(collections, filter):
     final_retrieval = []
     financial_main_db = mongodb_atlas_client.financial_main
 
     for collection in collections:
         target_collection = financial_main_db[collection]
-        retrieval_result = list(target_collection.find(filter_option, {"_id": 0}))
+        retrieval_result = list(target_collection.find(filter, {"_id": 0}))
         final_retrieval.extend(retrieval_result)
     return final_retrieval
 

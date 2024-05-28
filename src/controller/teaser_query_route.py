@@ -26,7 +26,7 @@ def teaser_query_route_controller():
 
     # to interpret user query and determine the intent
     user_query_interpretation_response = openai_client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-4o",
         messages=user_query_interpretation_messages,
         temperature=0.2,
         top_p=0.1,
@@ -34,7 +34,6 @@ def teaser_query_route_controller():
     )
 
     user_query_interpretation_response_json = user_query_interpretation_response.choices[0].message.content
-    print("user_query_interpretation_response_json:", user_query_interpretation_response_json)
 
     # convert json string to python dictionary
     user_query_interpretation_response_dict = json.loads(user_query_interpretation_response_json)
@@ -44,8 +43,9 @@ def teaser_query_route_controller():
 
     if user_query_interpretation_response_dict["intent"] == "retrieval":
         print("retrieval intent path")
+
         function_call_response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
             messages=function_call_messages,
             temperature=0.2,
             top_p=0.1,
@@ -65,15 +65,17 @@ def teaser_query_route_controller():
                 "retrieve_by_category_value_threshold": retrieve_by_category_value_threshold,
             }
 
+            # choose first tool call from the response message
             tool_call = function_call_response_message.tool_calls[0]
-            target_function_name = tool_call.function.name
-            print("target_function_name:", target_function_name)
-            print("function_arguments (lowered):", tool_call.function.arguments.lower())
 
-            target_function_to_call = available_functions[target_function_name]
-            # convert the JSON string (all letter lower cased) to a Python dictionary for function arguments
+            # extract the target function name and arguments from the tool call
+            target_function_name = tool_call.function.name
             target_function_args = json.loads(tool_call.function.arguments.lower())
-            # call and execute the function on server side and return the result
+            print("target_function_name:", target_function_name)
+            print("function_arguments (lowered):", target_function_args)
+
+            # call the target function with the arguments
+            target_function_to_call = available_functions[target_function_name]
             retrieved_result = target_function_to_call(**target_function_args)
             print("retrieved_result:", retrieved_result)
 
@@ -115,7 +117,7 @@ def teaser_query_route_controller():
             name="financial_analyzer",
             instructions=calculate_prompt,
             tools=[{"type": "code_interpreter"}],
-            model="gpt-4-turbo-preview",
+            model="gpt-4o",
         )
 
         print("create thread")

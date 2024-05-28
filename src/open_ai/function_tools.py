@@ -5,10 +5,10 @@ retrieve_filtered_data_tool = {
     "function": {
         "name": "retrieve_filtered_data",
         "description": (
-            "Retrieves data from specified collections with optional filters."
+            "Retrieves data from specified collections with filters."
             "Primarily call this function when user query either only contains collection name(s) (revenue, expense, parts_orders, working_hours) without filters, or with a filter based on year or/and month."
             "this function should always be first considered over others when the user query contains collections."
-            "Example calls: retrieve_filtered_data(['revenue'], {'year': 2024}) or retrieve_filtered_data(['revenue', 'expense'], {})."
+            "Example calls: retrieve_filtered_data(['revenue'], {'year': 2024})"
         ),
         "parameters": {
             "type": "object",
@@ -16,14 +16,16 @@ retrieve_filtered_data_tool = {
                 "collections": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Array of collection names, can be single or multiple within array (e.g., ['revenue'] or ['revenue','expense'])",
+                    "description": "Array of collection names, can be single or multiple within array depends which data category user wants to retrieve (e.g., ['revenue'] or ['revenue','expense'])",
                 },
-                "filter_option": {
+                "filter": {
                     "type": "object",
-                    "description": "This is optional, depends on if user query contain any filtering based on specific year and/or month e.g., {'year': 2023, 'month': 'may'} or {'year': 2023}.",
+                    "description": (
+                        "contains filter conditions based on year or/and month for the specified collection(s). e.g: if query contains 'in 2023 may', filter should gives: {'year': 2023, 'month': 'may'}; if query contains only year 'in 2024', filter should gives {'year': 2024}; if query contains multiple years 'in 2023 and 2024', it should gives {'year': {'$in': [2023, 2024]}}."
+                    ),
                 },
             },
-            "required": ["collections"],
+            "required": ["collections", "filter"],
         },
     },
 }
