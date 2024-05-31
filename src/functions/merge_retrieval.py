@@ -12,7 +12,6 @@ from src.utils.merge_data_process import (
     filter_income_statements_by_date,
 )
 
-
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 # for invoice data retrieval
 
@@ -88,6 +87,7 @@ def retrieve_client_cash_flows_data(start_date=None, end_date=None):
         cursor = current_page_raw_retrieved_result.next
 
     # we then filter the transformed data based on the date range provided from user query
+
     retrieval_result = filter_cash_flows_by_date(
         full_transformed_items=full_transformed_result,
         start_date=start_date,

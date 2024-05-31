@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
+from datetime import datetime as dt, timezone as tz
 from src.utils.shareables import merge_field_converter
-
+import datetime
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 # for invoice data
@@ -42,37 +42,47 @@ def filter_invoices_by_date(full_transformed_items, start_date=None, end_date=No
     filtered_items = []
 
     for item in full_transformed_items:
+        # Make sure issueDate is already a datetime object or convert it here
+        issue_date = item["issueDate"]  # Assuming item["issueDate"] is already a datetime object with timezone
+
+        # filter out if issueDate is not a datetime object
+        if not isinstance(issue_date, datetime.datetime):
+            continue
+
         # Filtering between two dates
         if start_date and end_date:
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
-            if start_date_dt <= item["issueDate"] <= end_date_dt:
-                item["issueDate"] = item["issueDate"].strftime("%Y-%m-%d")
-                item["dueDate"] = item["dueDate"].strftime("%Y-%m-%d")
-                filtered_items.append(item)
+            if start_date_dt <= issue_date <= end_date_dt:
+                item_copy = item.copy()
+                item_copy["issueDate"] = item_copy["issueDate"].strftime("%Y-%m-%d")
+                item_copy["dueDate"] = item_copy["dueDate"].strftime("%Y-%m-%d")
+                filtered_items.append(item_copy)
 
         # Filtering after a specific date
         elif start_date:
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
 
-            if item["issueDate"] >= start_date_dt:
-                item["issueDate"] = item["issueDate"].strftime("%Y-%m-%d")
-                item["dueDate"] = item["dueDate"].strftime("%Y-%m-%d")
-                filtered_items.append(item)
+            if issue_date >= start_date_dt:
+                item_copy = item.copy()
+                item_copy["issueDate"] = item_copy["issueDate"].strftime("%Y-%m-%d")
+                item_copy["dueDate"] = item_copy["dueDate"].strftime("%Y-%m-%d")
+                filtered_items.append(item_copy)
 
         # Filtering before a specific date
         elif end_date:
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
-            if item["issueDate"] <= end_date_dt:
-                item["issueDate"] = item["issueDate"].strftime("%Y-%m-%d")
-                item["dueDate"] = item["dueDate"].strftime("%Y-%m-%d")
-                filtered_items.append(item)
+            if issue_date <= end_date_dt:
+                item_copy = item.copy()
+                item_copy["issueDate"] = item_copy["issueDate"].strftime("%Y-%m-%d")
+                item_copy["dueDate"] = item_copy["dueDate"].strftime("%Y-%m-%d")
+                filtered_items.append(item_copy)
 
     return filtered_items
 
@@ -119,26 +129,26 @@ def filter_balance_sheets_by_date(full_transformed_items, start_date=None, end_d
 
     for item in full_transformed_items:
         if start_date and end_date:  # Filtering between two dates
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if start_date_dt <= item["date"] <= end_date_dt:
                 item["date"] = item["date"].strftime("%Y-%m-%d")
                 filtered_items.append(item)
 
         elif start_date:  # Filtering after a specific date
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
 
             if item["date"] >= start_date_dt:
                 item["date"] = item["date"].strftime("%Y-%m-%d")
                 filtered_items.append(item)
 
         elif end_date:  # Filtering before a specific date
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if item["date"] <= end_date_dt:
                 item["date"] = item["date"].strftime("%Y-%m-%d")
@@ -187,10 +197,10 @@ def filter_cash_flows_by_date(full_transformed_items, start_date=None, end_date=
 
     for item in full_transformed_items:
         if start_date and end_date:  # Filtering between two dates
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if start_date_dt <= item["startPeriod"] <= end_date_dt:
                 item["startPeriod"] = item["startPeriod"].strftime("%Y-%m-%d")
@@ -198,8 +208,8 @@ def filter_cash_flows_by_date(full_transformed_items, start_date=None, end_date=
                 filtered_items.append(item)
 
         elif start_date:  # Filtering after a specific date
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
 
             if item["startPeriod"] >= start_date_dt:
                 item["startPeriod"] = item["startPeriod"].strftime("%Y-%m-%d")
@@ -207,8 +217,8 @@ def filter_cash_flows_by_date(full_transformed_items, start_date=None, end_date=
                 filtered_items.append(item)
 
         elif end_date:  # Filtering before a specific date
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if item["startPeriod"] <= end_date_dt:
                 item["startPeriod"] = item["startPeriod"].strftime("%Y-%m-%d")
@@ -251,26 +261,26 @@ def filter_expenses_by_date(full_transformed_items, start_date=None, end_date=No
     filtered_items = []
     for item in full_transformed_items:
         if start_date and end_date:  # Filtering between two dates
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if start_date_dt <= item["transactionDate"] <= end_date_dt:
                 item["transactionDate"] = item["transactionDate"].strftime("%Y-%m-%d")
                 filtered_items.append(item)
 
         elif start_date:  # Filtering after a specific date
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
 
             if item["transactionDate"] >= start_date_dt:
                 item["transactionDate"] = item["transactionDate"].strftime("%Y-%m-%d")
                 filtered_items.append(item)
 
         elif end_date:  # Filtering before a specific date
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if item["transactionDate"] <= end_date_dt:
                 item["transactionDate"] = item["transactionDate"].strftime("%Y-%m-%d")
@@ -328,10 +338,10 @@ def filter_income_statements_by_date(full_transformed_items, start_date=None, en
     filtered_items = []
     for item in full_transformed_items:
         if start_date and end_date:  # Filtering between two dates
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if start_date_dt <= item["startPeriod"] <= end_date_dt:
                 item["startPeriod"] = item["startPeriod"].strftime("%Y-%m-%d")
@@ -339,8 +349,8 @@ def filter_income_statements_by_date(full_transformed_items, start_date=None, en
                 filtered_items.append(item)
 
         elif start_date:  # Filtering after a specific date
-            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date_dt = start_date_dt.replace(tzinfo=timezone.utc)
+            start_date_dt = dt.strptime(start_date, "%Y-%m-%d")
+            start_date_dt = start_date_dt.replace(tzinfo=tz.utc)
 
             if item["startPeriod"] >= start_date_dt:
                 item["startPeriod"] = item["startPeriod"].strftime("%Y-%m-%d")
@@ -348,8 +358,8 @@ def filter_income_statements_by_date(full_transformed_items, start_date=None, en
                 filtered_items.append(item)
 
         elif end_date:  # Filtering before a specific date
-            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date_dt = end_date_dt.replace(tzinfo=timezone.utc)
+            end_date_dt = dt.strptime(end_date, "%Y-%m-%d")
+            end_date_dt = end_date_dt.replace(tzinfo=tz.utc)
 
             if item["startPeriod"] <= end_date_dt:
                 item["startPeriod"] = item["startPeriod"].strftime("%Y-%m-%d")
